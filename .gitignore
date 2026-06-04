@@ -20,6 +20,9 @@
 # production
 /build
 
+# firebase
+firebase-service-account.json
+
 # misc
 .DS_Store
 *.pem
