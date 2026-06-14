@@ -4,6 +4,8 @@ export interface PricingTier {
   label: string;
   amountKobo: number;
   paymentLink?: string;
+  /** When true, registrants for this tier must upload an ID document. */
+  requestIdDoc?: boolean;
 }
 
 export interface EventTrack {

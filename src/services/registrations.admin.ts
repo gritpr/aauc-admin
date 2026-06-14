@@ -107,6 +107,7 @@ export function registrationsToCsv(registrations: Registration[]): string {
     "institution",
     "paystackReference",
     "photoUrl",
+    "idDocUrl",
     "createdAt",
     "updatedAt",
     "paidAt",

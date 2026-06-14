@@ -94,6 +94,22 @@ export default async function RegistrationDetailPage({
             />
           </div>
         )}
+
+        {registration.idDocUrl && (
+          <div className="rounded-xl border border-gray-200 bg-white p-6">
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">
+              ID document
+            </h2>
+            <Image
+              src={registration.idDocUrl}
+              alt="ID document"
+              width={400}
+              height={400}
+              className="rounded-lg object-cover"
+              unoptimized
+            />
+          </div>
+        )}
       </div>
     </div>
   );

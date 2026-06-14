@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import { requireAdminSession } from "@/lib/api";
 import { getAdminStorage } from "@/lib/firebase/admin";
+import { validateEventImageFile } from "@/lib/upload/event-image";
 
 export async function POST(request: Request) {
   const auth = await requireAdminSession();
@@ -14,6 +15,11 @@ export async function POST(request: Request) {
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    }
+
+    const validationError = validateEventImageFile(file);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());

@@ -24,6 +24,7 @@ export interface Registration {
   cadre?: string | null;
   preferredNameOnCertificate?: string | null;
   photoUrl?: string | null;
+  idDocUrl?: string | null;
   participantStatus?: ParticipantStatus | null;
   gender?: string | null;
   industry?: string | null;

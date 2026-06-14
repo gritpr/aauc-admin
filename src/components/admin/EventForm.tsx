@@ -11,7 +11,7 @@ import {
   type EventFormData,
 } from "@/lib/events/form";
 import { formatNaira, koboToNaira, nairaToKobo } from "@/lib/money";
-import { getParticipantStatusOptions } from "@/lib/registration/pricing";
+import { validateEventImageFile } from "@/lib/upload/event-image";
 import type { ChapterEvent, PricingTier } from "@/types/event";
 
 const inputClass =
@@ -23,7 +23,9 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
   const [form, setForm] = useState<EventFormData>(() => eventToForm(event));
   const { showSuccess, showError } = useSnackbar();
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingField, setUploadingField] = useState<
+    "imageUrl" | "flierImageUrl" | null
+  >(null);
 
   const isConference = form.pricingTiers.length > 0;
 
@@ -35,19 +37,28 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
     file: File,
     field: "imageUrl" | "flierImageUrl",
   ) {
-    setUploading(true);
-    const fd = new FormData();
-    fd.append("file", file);
-    fd.append("slug", form.slug || "event");
-    const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-    setUploading(false);
-    if (!res.ok) {
-      showError(await getApiErrorMessage(res, "Image upload failed"));
+    const validationError = validateEventImageFile(file);
+    if (validationError) {
+      showError(validationError);
       return;
     }
-    const { url } = (await res.json()) as { url: string };
-    update(field, url);
-    showSuccess("Image uploaded");
+
+    setUploadingField(field);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("slug", form.slug || "event");
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      if (!res.ok) {
+        showError(await getApiErrorMessage(res, "Image upload failed"));
+        return;
+      }
+      const { url } = (await res.json()) as { url: string };
+      update(field, url);
+      showSuccess("Image uploaded");
+    } finally {
+      setUploadingField(null);
+    }
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -95,7 +106,7 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
   function addTier() {
     update("pricingTiers", [
       ...form.pricingTiers,
-      { label: "", amountKobo: 0, paymentLink: "" },
+      { label: "", amountKobo: 0, paymentLink: "", requestIdDoc: false },
     ]);
   }
 
@@ -218,18 +229,16 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
         <h2 className="mb-4 text-lg font-semibold text-gray-900">Images</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <ImageField
-            label="Card image URL"
+            label="Card image"
             value={form.imageUrl}
-            onChange={(v) => update("imageUrl", v)}
             onUpload={(f) => uploadImage(f, "imageUrl")}
-            uploading={uploading}
+            uploading={uploadingField === "imageUrl"}
           />
           <ImageField
-            label="Flier / hero URL"
+            label="Flier / hero image"
             value={form.flierImageUrl}
-            onChange={(v) => update("flierImageUrl", v)}
             onUpload={(f) => uploadImage(f, "flierImageUrl")}
-            uploading={uploading}
+            uploading={uploadingField === "flierImageUrl"}
           />
         </div>
       </section>
@@ -249,7 +258,7 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
         {form.pricingTiers.map((tier, i) => (
           <div
             key={i}
-            className="mb-4 grid gap-3 rounded-lg border border-gray-100 bg-gray-50 p-4 sm:grid-cols-4"
+            className="mb-4 grid gap-3 rounded-lg border border-gray-100 bg-gray-50 p-4 sm:grid-cols-2 lg:grid-cols-4"
           >
             <input
               placeholder="Label (e.g. Member)"
@@ -272,12 +281,23 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
               placeholder="Paystack Shop URL"
               value={tier.paymentLink ?? ""}
               onChange={(e) => updateTier(i, { paymentLink: e.target.value })}
-              className={`${inputClass} sm:col-span-2`}
+              className={`${inputClass} lg:col-span-2`}
             />
+            <label className="flex items-center gap-2 text-sm text-gray-700 lg:col-span-2">
+              <input
+                type="checkbox"
+                checked={tier.requestIdDoc ?? false}
+                onChange={(e) =>
+                  updateTier(i, { requestIdDoc: e.target.checked })
+                }
+                className="rounded border-gray-300 text-[var(--primary)] focus:ring-[var(--primary)]"
+              />
+              Request ID doc
+            </label>
             <button
               type="button"
               onClick={() => removeTier(i)}
-              className="text-sm text-red-600 hover:underline"
+              className="text-left text-sm text-red-600 hover:underline lg:col-span-2"
             >
               Remove
             </button>
@@ -287,25 +307,14 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
           <div className="mt-4 rounded-lg bg-purple-50 p-4 text-sm">
             <p className="font-medium text-[var(--primary)]">Tier preview</p>
             <ul className="mt-2 space-y-1 text-gray-700">
-              {getParticipantStatusOptions().map((opt) => {
-                const match = form.pricingTiers.find((t) => {
-                  const n = t.label.toLowerCase();
-                  if (opt.value === "member")
-                    return n.includes("member") && !n.includes("non");
-                  if (opt.value === "non_member") return n.includes("non");
-                  return (
-                    n.includes("student") || n.includes("undergraduate")
-                  );
-                });
-                return (
-                  <li key={opt.value}>
-                    {opt.label}:{" "}
-                    {match
-                      ? `${formatNaira(match.amountKobo)} → ${match.paymentLink || "no link"}`
-                      : "no matching tier"}
-                  </li>
-                );
-              })}
+              {form.pricingTiers.map((tier, i) => (
+                <li key={i}>
+                  {tier.label.trim() || `Tier ${i + 1}`}:{" "}
+                  {formatNaira(tier.amountKobo)} →{" "}
+                  {tier.paymentLink?.trim() || "no link"}
+                  {tier.requestIdDoc ? " · ID required" : ""}
+                </li>
+              ))}
             </ul>
           </div>
         )}
@@ -406,7 +415,7 @@ export function EventForm({ event }: { event?: ChapterEvent }) {
       </section>
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={saving}>
+        <Button type="submit" disabled={saving || uploadingField !== null}>
           {saving ? "Saving…" : event ? "Save changes" : "Create event"}
         </Button>
         <Button
@@ -446,13 +455,11 @@ function Field({
 function ImageField({
   label,
   value,
-  onChange,
   onUpload,
   uploading,
 }: {
   label: string;
   value: string;
-  onChange: (v: string) => void;
   onUpload: (f: File) => void;
   uploading: boolean;
 }) {
@@ -461,23 +468,24 @@ function ImageField({
       <label className="mb-1 block text-sm font-medium text-gray-700">
         {label}
       </label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`${inputClass} mb-2`}
-        placeholder="https://..."
-      />
+      <p className="mb-2 text-xs text-gray-500">
+        JPG, PNG, or WebP. Max 5 MB.
+      </p>
       <input
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/webp,image/gif"
         onChange={(e) => {
           const f = e.target.files?.[0];
           if (f) onUpload(f);
+          e.target.value = "";
         }}
         disabled={uploading}
         className="text-sm"
       />
-      {value && (
+      {uploading && (
+        <p className="mt-2 text-sm text-gray-600">Uploading…</p>
+      )}
+      {value && !uploading && (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={value} alt="" className="mt-2 h-24 rounded object-cover" />
       )}
