@@ -1,5 +1,6 @@
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminFirestore } from "@/lib/firebase/admin";
+import { deleteRegistrationStorageFiles } from "@/lib/registration/storage";
 import { serializeRegistrationDoc } from "@/lib/firestore/serialize";
 import type {
   Registration,
@@ -84,6 +85,47 @@ export async function updateRegistrationStatus(
   await ref.update(updates);
   const updated = await ref.get();
   return serializeRegistration(updated.id, updated.data()!);
+}
+
+export async function deleteRegistration(id: string): Promise<void> {
+  const registration = await getRegistrationById(id);
+  if (!registration) {
+    throw new Error("Registration not found");
+  }
+
+  await deleteRegistrationStorageFiles(id, [
+    registration.photoUrl,
+    registration.idDocUrl,
+  ]);
+
+  await getAdminFirestore().collection(COLLECTION).doc(id).delete();
+}
+
+export async function deleteRegistrations(ids: string[]): Promise<{
+  deleted: number;
+  notFound: string[];
+  failed: { id: string; error: string }[];
+}> {
+  const uniqueIds = [...new Set(ids.map((id) => id.trim()).filter(Boolean))];
+  const notFound: string[] = [];
+  const failed: { id: string; error: string }[] = [];
+  let deleted = 0;
+
+  for (const id of uniqueIds) {
+    try {
+      await deleteRegistration(id);
+      deleted += 1;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Delete failed";
+      if (message.includes("not found")) {
+        notFound.push(id);
+      } else {
+        failed.push({ id, error: message });
+      }
+    }
+  }
+
+  return { deleted, notFound, failed };
 }
 
 export function registrationsToCsv(registrations: Registration[]): string {

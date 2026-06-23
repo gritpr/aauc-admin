@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/api";
 import {
+  deleteRegistration,
   getRegistrationById,
   updateRegistrationStatus,
 } from "@/services/registrations.admin";
@@ -47,4 +48,24 @@ export async function POST(
 
   const registration = await updateRegistrationStatus(id, body.status);
   return NextResponse.json({ registration });
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
+
+  const { id } = await params;
+
+  try {
+    await deleteRegistration(id);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "Failed to delete registration";
+    const status = message.includes("not found") ? 404 : 500;
+    return NextResponse.json({ error: message }, { status });
+  }
 }

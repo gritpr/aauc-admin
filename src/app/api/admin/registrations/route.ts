@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminSession } from "@/lib/api";
 import {
+  deleteRegistrations,
   listRegistrations,
   registrationsToCsv,
 } from "@/services/registrations.admin";
@@ -29,4 +30,30 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({ registrations });
+}
+
+export async function DELETE(request: Request) {
+  const auth = await requireAdminSession();
+  if (!auth.ok) return auth.response;
+
+  const body = (await request.json()) as { ids?: string[] };
+  const ids = body.ids;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return NextResponse.json(
+      { error: "At least one registration id is required" },
+      { status: 400 },
+    );
+  }
+
+  const result = await deleteRegistrations(ids);
+
+  if (result.deleted === 0 && result.failed.length > 0) {
+    return NextResponse.json(
+      { error: "Failed to delete registrations", ...result },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json(result);
 }

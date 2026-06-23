@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { RegistrationActions } from "@/components/admin/RegistrationActions";
+import { RegistrationDetailActions } from "@/components/admin/RegistrationDetailActions";
 import { Badge } from "@/components/ui/Badge";
 import { formatDateTime } from "@/lib/dates";
 import { formatNaira } from "@/lib/money";
@@ -111,6 +112,15 @@ export default async function RegistrationDetailPage({
           </div>
         )}
       </div>
+
+      {registration.id && (
+        <RegistrationDetailActions
+          id={registration.id}
+          fullName={registration.fullName}
+          photoUrl={registration.photoUrl}
+          idDocUrl={registration.idDocUrl}
+        />
+      )}
     </div>
   );
 }
