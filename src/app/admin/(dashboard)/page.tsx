@@ -17,15 +17,13 @@ export default async function AdminDashboardPage() {
   const paid = registrations.filter(
     (r) => r.status === "payment_received" || r.status === "confirmed"
   );
-  const confirmedRegistrations = registrations.filter(
+  const confirmed = registrations.filter(
     (r) => r.status === "confirmed"
-  );
-  const confirmed = confirmedRegistrations.length;
+  ).length;
   const revenueKobo = paid.reduce((sum, r) => sum + (r.amount ?? 0), 0);
-  const confirmedRevenueKobo = confirmedRegistrations.reduce(
-    (sum, r) => sum + (r.amount ?? 0),
-    0
-  );
+  const receivedRevenueKobo = registrations
+    .filter((r) => r.status === "payment_received")
+    .reduce((sum, r) => sum + (r.amount ?? 0), 0);
 
   const recentEvents = events.slice(0, 5);
   const recentRegistrations = registrations.slice(0, 5);
@@ -43,8 +41,8 @@ export default async function AdminDashboardPage() {
         <StatCard label="Pending payments" value={pending} highlight />
         <StatCard label="Revenue collected" value={formatNaira(revenueKobo)} />
         <StatCard
-          label="Confirmed revenue"
-          value={formatNaira(confirmedRevenueKobo)}
+          label="Received revenue"
+          value={formatNaira(receivedRevenueKobo)}
         />
       </div>
 
