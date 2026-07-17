@@ -9,7 +9,6 @@ import type { RegistrationStatus } from "@/types/registration";
 const statuses: { value: RegistrationStatus; label: string }[] = [
   { value: "pending_payment", label: "Pending payment" },
   { value: "payment_received", label: "Payment received" },
-  { value: "confirmed", label: "Confirmed" },
   { value: "cancelled", label: "Cancelled" },
 ];
 

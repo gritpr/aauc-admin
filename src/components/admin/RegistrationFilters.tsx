@@ -45,7 +45,6 @@ export function RegistrationFilters({
           [
             "pending_payment",
             "payment_received",
-            "confirmed",
             "cancelled",
           ] as RegistrationStatus[]
         ).map((s) => (

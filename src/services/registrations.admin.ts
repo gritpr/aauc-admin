@@ -78,7 +78,7 @@ export async function updateRegistrationStatus(
     updatedAt: FieldValue.serverTimestamp(),
   };
 
-  if (status === "payment_received" || status === "confirmed") {
+  if (status === "payment_received") {
     updates.paidAt = FieldValue.serverTimestamp();
   }
 

@@ -39,7 +39,6 @@ export async function POST(
   const valid: RegistrationStatus[] = [
     "pending_payment",
     "payment_received",
-    "confirmed",
     "cancelled",
   ];
   if (!valid.includes(body.status)) {

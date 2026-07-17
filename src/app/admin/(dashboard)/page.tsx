@@ -14,16 +14,13 @@ export default async function AdminDashboardPage() {
   const pending = registrations.filter(
     (r) => r.status === "pending_payment"
   ).length;
-  const paid = registrations.filter(
-    (r) => r.status === "payment_received" || r.status === "confirmed"
+  const received = registrations.filter(
+    (r) => r.status === "payment_received"
   );
-  const confirmed = registrations.filter(
-    (r) => r.status === "confirmed"
-  ).length;
-  const revenueKobo = paid.reduce((sum, r) => sum + (r.amount ?? 0), 0);
-  const receivedRevenueKobo = registrations
-    .filter((r) => r.status === "payment_received")
-    .reduce((sum, r) => sum + (r.amount ?? 0), 0);
+  const receivedRevenueKobo = received.reduce(
+    (sum, r) => sum + (r.amount ?? 0),
+    0
+  );
 
   const recentEvents = events.slice(0, 5);
   const recentRegistrations = registrations.slice(0, 5);
@@ -35,11 +32,10 @@ export default async function AdminDashboardPage() {
         Manage chapter events and registrations
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Total registrations" value={registrations.length} />
-        <StatCard label="Confirmed" value={confirmed} />
+        <StatCard label="Payment received" value={received.length} />
         <StatCard label="Pending payments" value={pending} highlight />
-        <StatCard label="Revenue collected" value={formatNaira(revenueKobo)} />
         <StatCard
           label="Received revenue"
           value={formatNaira(receivedRevenueKobo)}

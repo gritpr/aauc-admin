@@ -1,7 +1,6 @@
 export type RegistrationStatus =
   | "pending_payment"
   | "payment_received"
-  | "confirmed"
   | "cancelled";
 
 export type ParticipantStatus = "member" | "non_member" | "student";
