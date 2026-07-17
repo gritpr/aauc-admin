@@ -17,10 +17,15 @@ export default async function AdminDashboardPage() {
   const paid = registrations.filter(
     (r) => r.status === "payment_received" || r.status === "confirmed"
   );
-  const confirmed = registrations.filter(
+  const confirmedRegistrations = registrations.filter(
     (r) => r.status === "confirmed"
-  ).length;
+  );
+  const confirmed = confirmedRegistrations.length;
   const revenueKobo = paid.reduce((sum, r) => sum + (r.amount ?? 0), 0);
+  const confirmedRevenueKobo = confirmedRegistrations.reduce(
+    (sum, r) => sum + (r.amount ?? 0),
+    0
+  );
 
   const recentEvents = events.slice(0, 5);
   const recentRegistrations = registrations.slice(0, 5);
@@ -32,11 +37,15 @@ export default async function AdminDashboardPage() {
         Manage chapter events and registrations
       </p>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-4">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard label="Total registrations" value={registrations.length} />
         <StatCard label="Confirmed" value={confirmed} />
         <StatCard label="Pending payments" value={pending} highlight />
         <StatCard label="Revenue collected" value={formatNaira(revenueKobo)} />
+        <StatCard
+          label="Confirmed revenue"
+          value={formatNaira(confirmedRevenueKobo)}
+        />
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
