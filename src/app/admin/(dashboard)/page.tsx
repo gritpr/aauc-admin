@@ -11,11 +11,16 @@ export default async function AdminDashboardPage() {
     listRegistrations(),
   ]);
 
-  const published = events.filter((e) => e.status === "published").length;
-  const drafts = events.filter((e) => e.status === "draft").length;
   const pending = registrations.filter(
     (r) => r.status === "pending_payment"
   ).length;
+  const paid = registrations.filter(
+    (r) => r.status === "payment_received" || r.status === "confirmed"
+  );
+  const confirmed = registrations.filter(
+    (r) => r.status === "confirmed"
+  ).length;
+  const revenueKobo = paid.reduce((sum, r) => sum + (r.amount ?? 0), 0);
 
   const recentEvents = events.slice(0, 5);
   const recentRegistrations = registrations.slice(0, 5);
@@ -28,10 +33,10 @@ export default async function AdminDashboardPage() {
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-4">
-        <StatCard label="Total events" value={events.length} />
-        <StatCard label="Published" value={published} />
-        <StatCard label="Drafts" value={drafts} />
+        <StatCard label="Total registrations" value={registrations.length} />
+        <StatCard label="Confirmed" value={confirmed} />
         <StatCard label="Pending payments" value={pending} highlight />
+        <StatCard label="Revenue collected" value={formatNaira(revenueKobo)} />
       </div>
 
       <div className="mt-10 grid gap-8 lg:grid-cols-2">
@@ -145,7 +150,7 @@ function StatCard({
   highlight,
 }: {
   label: string;
-  value: number;
+  value: number | string;
   highlight?: boolean;
 }) {
   return (
