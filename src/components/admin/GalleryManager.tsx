@@ -17,6 +17,8 @@ interface GalleryManagerProps {
   defaultDay: number;
 }
 
+let queuedFileSeq = 0;
+
 interface QueuedFile {
   key: string;
   file: File;
@@ -86,24 +88,30 @@ export function GalleryManager({
 
   function handleFilesChosen(fileList: FileList | null) {
     if (!fileList?.length) return;
-    setQueue((prev) => [
-      ...prev,
-      ...Array.from(fileList).map((file) => ({
-        key: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+
+    // Read the FileList and create previews now, not inside the updater:
+    // the list is live on the input and clearing value below empties it,
+    // and a state updater has to stay pure.
+    const added: QueuedFile[] = Array.from(fileList).map((file) => {
+      queuedFileSeq += 1;
+      return {
+        key: `queued-${queuedFileSeq}`,
         file,
         previewUrl: URL.createObjectURL(file),
         caption: "",
-      })),
-    ]);
+      };
+    });
+
+    setQueue((prev) => [...prev, ...added]);
+
+    // Lets the same file be picked again after it is removed.
     if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   function removeFromQueue(key: string) {
-    setQueue((prev) => {
-      const item = prev.find((q) => q.key === key);
-      if (item) URL.revokeObjectURL(item.previewUrl);
-      return prev.filter((q) => q.key !== key);
-    });
+    const item = queue.find((q) => q.key === key);
+    if (item) URL.revokeObjectURL(item.previewUrl);
+    setQueue((prev) => prev.filter((q) => q.key !== key));
   }
 
   async function handleUpload() {
