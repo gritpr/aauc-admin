@@ -361,7 +361,7 @@ export function GalleryManager({
               No photos yet.
             </p>
           ) : (
-            <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+            <ul className="mt-3 grid gap-2 lg:grid-cols-2 2xl:grid-cols-3">
               {d.photos.map((photo) => (
                 <PhotoCard
                   key={photo.id}
@@ -422,49 +422,62 @@ function PhotoCard({
   const dirty = caption.trim() !== photo.caption.trim();
 
   return (
-    <li className="rounded-lg border border-gray-200 p-3">
-      <div className="relative aspect-video w-full overflow-hidden rounded-lg bg-gray-100">
+    <li className="flex items-center gap-2 rounded-lg border border-gray-200 p-1.5">
+      <a
+        href={photo.imageUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        title="Open full size"
+        className="relative h-12 w-12 shrink-0 overflow-hidden rounded bg-gray-100"
+      >
         <Image
           src={photo.imageUrl}
           alt={photo.caption || "Gallery photo"}
           fill
           className="object-cover"
-          sizes="(min-width: 640px) 320px, 90vw"
+          sizes="48px"
         />
-      </div>
+      </a>
 
-      <textarea
+      <input
         value={caption}
         onChange={(e) => setCaption(e.target.value)}
-        rows={2}
         placeholder="Caption"
-        className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        className="min-w-0 flex-1 rounded border border-gray-300 px-2 py-1 text-xs"
       />
 
-      <div className="mt-2 flex flex-wrap items-center gap-2">
-        <Button
-          variant="secondary"
-          disabled={!dirty}
+      {dirty && (
+        <button
+          type="button"
           onClick={() => onSaveCaption(caption)}
+          className="shrink-0 rounded bg-[var(--primary)] px-2 py-1 text-xs font-medium text-white"
         >
           Save
-        </Button>
-        <select
-          value={photo.day}
-          onChange={(e) => onMove(Number(e.target.value))}
-          className="rounded-lg border border-gray-300 px-2 py-2 text-sm"
-          aria-label="Move to day"
-        >
-          {days.map((day) => (
-            <option key={day} value={day}>
-              Day {day}
-            </option>
-          ))}
-        </select>
-        <Button variant="ghost" className="ml-auto text-red-600" onClick={onDelete}>
-          Delete
-        </Button>
-      </div>
+        </button>
+      )}
+
+      <select
+        value={photo.day}
+        onChange={(e) => onMove(Number(e.target.value))}
+        className="shrink-0 rounded border border-gray-300 px-1 py-1 text-xs"
+        aria-label="Move to day"
+      >
+        {days.map((day) => (
+          <option key={day} value={day}>
+            Day {day}
+          </option>
+        ))}
+      </select>
+
+      <button
+        type="button"
+        onClick={onDelete}
+        aria-label="Delete photo"
+        title="Delete photo"
+        className="shrink-0 rounded px-1.5 py-1 text-xs text-gray-400 hover:bg-red-50 hover:text-red-600"
+      >
+        ✕
+      </button>
     </li>
   );
 }
