@@ -51,6 +51,8 @@ export interface ChapterEvent {
   tracks?: EventTrack[];
   abstractSubmission?: AbstractSubmission;
   contacts?: EventContact[];
+  /** Optional gallery headline per conference day: { "1": "Opening ceremony" } */
+  galleryDayTitles?: Record<string, string>;
 }
 
 /** Firestore create payload (Date fields converted server-side). */
@@ -75,6 +77,7 @@ export type ChapterEventInput = {
   tracks?: EventTrack[] | null;
   abstractSubmission?: AbstractSubmission | null;
   contacts?: EventContact[] | null;
+  galleryDayTitles?: Record<string, string> | null;
 };
 
 /** Partial Firestore update — only changed keys; null clears optional fields. */

@@ -43,6 +43,9 @@ export function parseEventPatch(
       patch.abstractSubmission as ChapterEventInput["abstractSubmission"];
   if ("contacts" in patch)
     result.contacts = patch.contacts as ChapterEventInput["contacts"];
+  if ("galleryDayTitles" in patch)
+    result.galleryDayTitles =
+      patch.galleryDayTitles as ChapterEventInput["galleryDayTitles"];
 
   return result;
 }
@@ -73,5 +76,6 @@ export function parseEventCreate(
     tracks: patch.tracks,
     abstractSubmission: patch.abstractSubmission,
     contacts: patch.contacts,
+    galleryDayTitles: patch.galleryDayTitles,
   };
 }

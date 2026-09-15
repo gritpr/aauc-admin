@@ -30,7 +30,15 @@ export default async function EventDetailPage({
             <span className="font-mono text-sm text-gray-500">/{event.slug}</span>
           </div>
         </div>
-        {event.id && <EventActions id={event.id} status={event.status} />}
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/events/${event.id}/gallery`}
+            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-800 transition hover:bg-gray-50"
+          >
+            Photo gallery
+          </Link>
+          {event.id && <EventActions id={event.id} status={event.status} />}
+        </div>
       </div>
 
       <div className="mt-8">
