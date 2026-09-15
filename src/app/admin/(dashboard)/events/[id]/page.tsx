@@ -27,6 +27,7 @@ export default async function EventDetailPage({
           <h1 className="mt-2 text-2xl font-bold text-gray-900">{event.title}</h1>
           <div className="mt-2 flex items-center gap-2">
             <Badge status={event.status} />
+            {event.registrationClosed && <Badge status="registration_closed" />}
             <span className="font-mono text-sm text-gray-500">/{event.slug}</span>
           </div>
         </div>
@@ -37,7 +38,13 @@ export default async function EventDetailPage({
           >
             Photo gallery
           </Link>
-          {event.id && <EventActions id={event.id} status={event.status} />}
+          {event.id && (
+            <EventActions
+              id={event.id}
+              status={event.status}
+              registrationClosed={event.registrationClosed ?? false}
+            />
+          )}
         </div>
       </div>
 

@@ -53,6 +53,8 @@ export interface ChapterEvent {
   contacts?: EventContact[];
   /** Optional gallery headline per conference day: { "1": "Opening ceremony" } */
   galleryDayTitles?: Record<string, string>;
+  /** When true the event stays visible but accepts no new registrations. */
+  registrationClosed?: boolean;
 }
 
 /** Firestore create payload (Date fields converted server-side). */
@@ -78,6 +80,7 @@ export type ChapterEventInput = {
   abstractSubmission?: AbstractSubmission | null;
   contacts?: EventContact[] | null;
   galleryDayTitles?: Record<string, string> | null;
+  registrationClosed?: boolean;
 };
 
 /** Partial Firestore update — only changed keys; null clears optional fields. */

@@ -46,6 +46,8 @@ export function parseEventPatch(
   if ("galleryDayTitles" in patch)
     result.galleryDayTitles =
       patch.galleryDayTitles as ChapterEventInput["galleryDayTitles"];
+  if ("registrationClosed" in patch)
+    result.registrationClosed = Boolean(patch.registrationClosed);
 
   return result;
 }
@@ -77,5 +79,6 @@ export function parseEventCreate(
     abstractSubmission: patch.abstractSubmission,
     contacts: patch.contacts,
     galleryDayTitles: patch.galleryDayTitles,
+    registrationClosed: patch.registrationClosed ?? false,
   };
 }

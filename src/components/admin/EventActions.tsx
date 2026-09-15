@@ -14,9 +14,11 @@ const successMessages: Record<string, string> = {
 export function EventActions({
   id,
   status,
+  registrationClosed = false,
 }: {
   id: string;
   status: EventStatus;
+  registrationClosed?: boolean;
 }) {
   const router = useRouter();
   const { showSuccess, showError } = useSnackbar();
@@ -40,8 +42,44 @@ export function EventActions({
     if (action === "delete") router.push("/admin/events");
   }
 
+  async function setRegistrationClosed(closed: boolean) {
+    if (
+      closed &&
+      !confirm(
+        "Close registration? The event stays on the site but no new registrations will be accepted.",
+      )
+    ) {
+      return;
+    }
+
+    const res = await fetch("/api/admin/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "update",
+        id,
+        patch: { registrationClosed: closed },
+      }),
+    });
+
+    if (!res.ok) {
+      showError(await getApiErrorMessage(res, "Action failed"));
+      return;
+    }
+
+    showSuccess(closed ? "Registration closed" : "Registration reopened");
+    router.refresh();
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
+      <Button
+        type="button"
+        variant="secondary"
+        onClick={() => setRegistrationClosed(!registrationClosed)}
+      >
+        {registrationClosed ? "Reopen registration" : "Close registration"}
+      </Button>
       {status === "draft" ? (
         <Button type="button" onClick={() => runAction("publish")}>
           Publish

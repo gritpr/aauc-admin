@@ -4,6 +4,7 @@ const styles: Record<string, string> = {
   pending_payment: "bg-yellow-100 text-yellow-800",
   payment_received: "bg-green-100 text-green-800",
   cancelled: "bg-red-100 text-red-800",
+  registration_closed: "bg-orange-100 text-orange-800",
 };
 
 export function Badge({
